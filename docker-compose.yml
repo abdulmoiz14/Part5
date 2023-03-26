@@ -1,23 +1,22 @@
-version: "3"
+version: "3.9"
 networks:
   my_network:
-
+    driver: bridge
 
 services:
   web:
     build: .
     ports:
-      - "5000:80"
+      - "8080:8080"
     depends_on:
       - db
     networks:
       - my_network
+    environment:
+      DATABASE_URL: postgres://myuser:mysecretpassword@db:5432/mydb
 
   db:
     build: ./db
-    environment:
-      POSTGRES_PASSWORD: yourpassword
-      POSTGRES_DB: mydatabase
     ports:
       - "5432:5432"
     networks:
