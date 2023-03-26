@@ -4,6 +4,5 @@ FROM postgres:13-alpine
 ENV POSTGRES_PASSWORD=yourpassword
 ENV POSTGRES_DB=mydatabase
 
-COPY init.sql /docker-entrypoint-initdb.d/
 
 EXPOSE 5432

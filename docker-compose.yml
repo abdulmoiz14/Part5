@@ -1,24 +1,25 @@
 version: "3"
-service:
+networks:
+  my_network:
+
+
+services:
   web:
     build: .
     ports:
-      - "5000:5000"
+      - "5000:80"
     depends_on:
       - db
-    network:
-      - network1
+    networks:
+      - my_network
+
   db:
-    build: ./db_dockerfile
+    build: ./db
     environment:
       POSTGRES_PASSWORD: yourpassword
       POSTGRES_DB: mydatabase
     ports:
       - "5432:5432"
-    network:
-      - network1
-networks:
-  network1:
-     driver: custom-driver-1
-
+    networks:
+      - my_network
 
