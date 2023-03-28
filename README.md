@@ -108,3 +108,64 @@ docker network inspect part_my_network
 ```
 **output**<br />
 ![Screenshot (79)](https://user-images.githubusercontent.com/65711565/227807084-19e672f5-9d53-47aa-8094-25bb8956c16e.png)
+## Step 4 Add feature in web image
+**overwrite app.py**
+```
+from flask import Flask,render_template
+app = Flask(__name__)
+
+@app.route('/')
+def hello_world():
+    return render_template('index.html')
+
+@app.route('/new')
+def new():
+    return render_template('newfeature.html')
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=8080)
+```
+**Create newfeature.html in templates folder and copy this in it.**
+```
+cd templates
+touch newfeature.html
+```
+**copy this in newfeature.html**
+```
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>new feature!</title>
+  </head>
+  <body>
+    <h1>New feature page.</h1>
+    <a href="/">go back to home page!</a>
+  </body>
+</html>
+```
+**Rebuild and redeploy docker-compose.**
+```
+docker-compose up --build
+```
+**Output**<br />
+![Screenshot (80)](https://user-images.githubusercontent.com/65711565/228295303-5da16a21-cd94-4ade-96fb-36e7f2fadb10.png)
+![Screenshot (81)](https://user-images.githubusercontent.com/65711565/228295343-44518da4-78fa-447a-9b47-acdf96e66daf.png)
+## step 5 add docker backup strategy
+**update db service in docker-compose.yml file**
+```
+db:
+    build: ./db
+    ports:
+      - "5432:5432"
+    networks:
+      - my_network
+    volumes:
+      - db_data:/var/lib/postgresql/data
+```
+**add this step in db dockerfile.**
+```
+#Create a backup of db_data
+Run --rm -v db_data:/volume -v $(pwd):/backup alpine tar -czvf /backup/db-backup.tar.gz /volume
+```
+**Output**<br />
+![Screenshot (82)](https://user-images.githubusercontent.com/65711565/228297138-30492bcc-0d74-42aa-88d3-b6f79dca663a.png)
