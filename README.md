@@ -162,10 +162,105 @@ db:
     volumes:
       - db_data:/var/lib/postgresql/data
 ```
-**add this step in db dockerfile.**
+**add this step in db dockerfile for backup strategy.**
 ```
 #Create a backup of db_data
 Run --rm -v db_data:/volume -v $(pwd):/backup alpine tar -czvf /backup/db-backup.tar.gz /volume
 ```
 **Output**<br />
 ![Screenshot (82)](https://user-images.githubusercontent.com/65711565/228297138-30492bcc-0d74-42aa-88d3-b6f79dca663a.png)
+## step 6 add scaling strategy for application
+**update web service in docker-compose.yml**
+```
+services:
+  web:
+    build: .
+    #8080-9090 this will alocate different port to every instance of web.
+    ports:
+      - "8080-8090:8080"
+    depends_on:
+      - db
+    networks:
+      - my_network
+    environment:
+      DATABASE_URL: postgres://myuser:mysecretpassword@db:5432/mydb
+    #this will create multiple instance of web service
+    deploy:
+      replicas: 3
+```
+**now use up command to build containers.**
+```
+docker-compose up
+```
+**Or you scale dynamically in docker-compose command.**
+```
+docker-compose up --scale web=4
+```
+**logs**<br /><br />
+![Screenshot (86)](https://user-images.githubusercontent.com/65711565/228299695-d4f93695-af26-4705-8f9b-ab1bdd00bdf2.png)
+**output**<br /><br />
+![Screenshot (87)](https://user-images.githubusercontent.com/65711565/228299844-3e5dd6cb-3b77-43dd-ba63-4f70129a438e.png)
+## step 7 Add monitoring strategy for the application
+**add grafana service in docker-compose.yml**
+```
+version: "3.9"
+networks:
+  my_network:
+    driver: bridge
+
+services:
+  web:
+    build: .
+    #8080-9090 this will alocate different port to every instance of web.
+    ports:
+      - "8080-8090:8080"
+    depends_on:
+      - db
+    networks:
+      - my_network
+    environment:
+      DATABASE_URL: postgres://myuser:mysecretpassword@db:5432/mydb
+    #this will create multiple instance of web service
+    deploy:
+      replicas: 3
+  
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+
+
+  db:
+    build: ./db
+    ports:
+      - "5432:5432"
+    networks:
+      - my_network
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
+  grafana-data:
+```
+**use up command to rebuild.**
+```
+docker-compose up --build --scale web=4
+```
+**logs**<br /><br />
+![Screenshot (88)](https://user-images.githubusercontent.com/65711565/228301431-2f2d81fc-a296-4639-8f33-39e6b7c3c940.png)
+**output**<br />
+![Screenshot (90)](https://user-images.githubusercontent.com/65711565/228301521-405f761f-f07c-42a9-ae4b-357928d6a435.png)
+ 
+ ## Step 8 push the codebase to github
+ **use these command to push codebase.**
+ ```
+ git init
+ git remote set-url origin https://github.com/abdulmoiz14/Part5.git
+ git remote -v
+ git add --all
+ git commit -m "update codebase"
+ git push -f -u origin main
+ ```
